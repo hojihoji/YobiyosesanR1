@@ -26,22 +26,58 @@
 
         <ImageButton
             android:id="@+id/imbPlay"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:scaleType="fitCenter"
+            android:layout_marginRight="20dp"
             android:src="@drawable/icon_play"/>
 
         <ImageButton
             android:id="@+id/imbStop"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:scaleType="fitCenter"
+            android:layout_marginRight="20dp"
             android:src="@drawable/icon_stop"/>
 
         <ImageButton
             android:id="@+id/imbRepeat"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-        
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/icon_repeat"/>
 
     </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/btnChooseMusic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_main_activity_choose_music"/>
+
+        <TextView
+            android:id="@+id/hintMusicName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="@string/hint_main_activity_music_name"/>
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnIntentRec"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_main_activity_intent_rec"/>
+
 
 </LinearLayout>
