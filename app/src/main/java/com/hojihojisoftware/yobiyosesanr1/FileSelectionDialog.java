@@ -109,7 +109,7 @@ public class FileSelectionDialog implements AdapterView.OnItemClickListener {
                 //ファイルサイズテキスト
                 TextView textViewFileSize = new TextView(mContext);
                 textViewFileName.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
-                layout.addView(textViewFileName, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                layout.addView(textViewFileSize, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
                 converterView = layout;
                 viewHolder = new ViewHolder();
@@ -125,7 +125,7 @@ public class FileSelectionDialog implements AdapterView.OnItemClickListener {
                 viewHolder.textViewFileSize.setText("(directory)");
             }else{
                 viewHolder.textViewFileName.setText(fileInfo.getName());
-                viewHolder.textViewFileSize.setText(String.valueOf(fileInfo.getFile().length() / 1024 ) + " [KB]"));
+                viewHolder.textViewFileSize.setText(String.valueOf(fileInfo.getFile().length() / 1024 ) + " [KB]");
             }
             return converterView;
         }

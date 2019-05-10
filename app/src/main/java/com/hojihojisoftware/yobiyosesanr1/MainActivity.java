@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.os.Build;
+import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,14 +15,18 @@ import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
+import java.io.File;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity implements  FileSelectionDialog.OnFileSelectListener{
 
     final int PERMISSION_REQUEST_CODE = 100;
     ImageButton mPlayImageButton,mStopImageButton,mRepeatImageButton;
     SeekBar mSeekBar;
 
     MediaPlayer mMediaPlayer;
+
+    private String mStrInitialDir = Environment.getExternalStorageDirectory().getPath();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         mRepeatImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                repeatAudio;
+                repeatAudio();
             }
         });
 
@@ -72,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         intentRecButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                intetRec();
+                intentRec();
             }
         });
 
@@ -83,26 +88,35 @@ public class MainActivity extends AppCompatActivity {
 
     //各種メソッド
     private void selectAudio(){
-
+        FileSelectionDialog dig = new FileSelectionDialog(this,this);
+        dig.show(new File(mStrInitialDir));
     }
 
-    private boolean audioSetup(){
-        boolean fileCheck = false;
-
-        mMediaPlayer = new MediaPlayer();
-
+    private void audioSetup(){
+        Toast.makeText(MainActivity.this,"audioSetup()は未実装です！",Toast.LENGTH_LONG).show();
     }
 
 
     public void playAudio(){
-        if(mMediaPlayer == null){
-            if(audioSetup()){
-                Toast.makeText(getApplication(),"再生を開始します!",Toast.LENGTH_LONG).show();
-            }else {
-                Toast.makeText(getApplication(),"再生失敗。音声ファイルが、設定されているか確認してください",Toast.LENGTH_LONG).show();
-                return;
-            }
-        }
+        Toast.makeText(MainActivity.this,"playAudio()は未実装です！",Toast.LENGTH_LONG).show();
+    }
+
+    public void stopAudio(){
+        Toast.makeText(MainActivity.this,"stopAudio()は未実装です！",Toast.LENGTH_LONG).show();
+    }
+
+    public void repeatAudio(){
+        Toast.makeText(MainActivity.this,"repeatAudio()は未実装です！",Toast.LENGTH_LONG).show();
+    }
+
+    public void intentRec(){
+        Toast.makeText(MainActivity.this,"intentRec()は未実装です！",Toast.LENGTH_LONG).show();
+    }
+
+    //ファイル選択時の関数
+    public void onFileSelect(File file){
+        Toast.makeText(MainActivity.this,"選択ファイル"+file.getPath(),Toast.LENGTH_LONG).show();
+        mStrInitialDir = file.getParent();
     }
 
 
