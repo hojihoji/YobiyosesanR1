@@ -1,88 +1,203 @@
+//参考URL：https://www.hiramine.com/programming/android/fileselectiondialog.html
+
 package com.hojihojisoftware.yobiyosesanr1;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.util.TypedValue;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.SeekBar;
+import android.widget.TextView;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 public class FileSelectionDialog implements AdapterView.OnItemClickListener {
-    static public class FileInfo implements Comparable<FileInfo> {
 
+    //ファイル情報クラス。以下の役割を提供する。
+    //①ファイル・ディレクトリの表示名とFileオブジェクトの管理
+    //②ソート用の比較関数の提供
+    public static class  FileInfo implements Comparable<FileInfo>{
+        private String mStrName;
+        private File mFile;
+
+        //コンストラクタ
+        public FileInfo(String strName,File file){
+            mStrName = strName;
+            mFile = file;
+        }
+
+        //ゲッター
+        public String getName(){
+            return mStrName;
+        }
+
+        public File getFile(){
+            return mFile;
+        }
+
+        //比較
+        public int compareTo(FileInfo another){
+            if(mFile.isDirectory()&&!another.getFile().isDirectory()){
+                return -1;
+            }
+            if(!mFile.isDirectory()&&another.getFile().isDirectory()){
+                return 1;
+            }
+            return mFile.getName().toLowerCase().compareTo(another.getFile().getName().toLowerCase());
+        }
     }
 
-    static public class FileInfoArrayAdapter extends BaseAdapter {
+    //ファイル情報配列アダプタクラス
+    //①ファイル情報リストの委譲、管理
+    //②ListViewのリスト表示における一要素のビューの生成
+    public static class FileInfoArrayAdapter extends BaseAdapter{
+        private Context mContext;
+        private List<FileInfo> mListFileInfo; // ファイル情報リスト
 
+        //コンストラクタ
+        public FileInfoArrayAdapter(Context context,List<FileInfo>listFileInfo){
+            super();
+            mContext = context;
+            mListFileInfo = listFileInfo;
+        }
+
+        //ゲッター
+        @Override
+        public int getCount(){
+            return  mListFileInfo.size();
+        }
+
+        @Override
+        public FileInfo getItem(int position){
+            return  mListFileInfo.get(position);
+        }
+
+        @Override
+        public long getItemId(int position){
+            return position;
+        }
+
+        static class ViewHolder{
+            TextView textViewFileName;
+            TextView textViewFileSize;
+        }
+
+        // 一要素のビューの生成
+        @Override
+        public View getView(int position, View converterView, ViewGroup parent){
+            ViewHolder viewHolder;
+            if(null == converterView){
+                //レイアウト
+                LinearLayout layout = new LinearLayout(mContext);
+                layout.setOrientation(LinearLayout.VERTICAL);
+                layout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,LinearLayout.LayoutParams.WRAP_CONTENT));
+
+                //ファイル名テキスト
+                TextView textViewFileName = new TextView(mContext);
+                textViewFileName.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 24);
+                layout.addView(textViewFileName, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+                //ファイルサイズテキスト
+                TextView textViewFileSize = new TextView(mContext);
+                textViewFileName.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+                layout.addView(textViewFileName, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+                converterView = layout;
+                viewHolder = new ViewHolder();
+                viewHolder.textViewFileName = textViewFileName;
+                viewHolder.textViewFileSize = textViewFileSize;
+                converterView.setTag(viewHolder);
+            }else{
+                viewHolder = (ViewHolder)converterView.getTag();
+            }
+            FileInfo fileInfo = mListFileInfo.get(position);
+            if(fileInfo.getFile().isDirectory()){
+                viewHolder.textViewFileName.setText(fileInfo.getName()+"/");
+                viewHolder.textViewFileSize.setText("(directory)");
+            }else{
+                viewHolder.textViewFileName.setText(fileInfo.getName());
+                viewHolder.textViewFileSize.setText(String.valueOf(fileInfo.getFile().length() / 1024 ) + " [KB]"));
+            }
+            return converterView;
+        }
     }
 
-    private Context              m_contextParent;    // 呼び出し元
-    private OnFileSelectListener m_listener;    // 結果受取先
-    private AlertDialog          m_dialog;    // ダイアログ
-    private FileInfoArrayAdapter m_fileinfoarrayadapter; // ファイル情報配列アダプタ
 
-    // コンストラクタ
-    public FileSelectionDialog( Context context, OnFileSelectListener listener )
-    {
-        m_contextParent = context;
-        m_listener = listener;
+    //ファイル選択ダイアログクラス(本文)
+    //①ダイアログの作成と表示
+    //②ダイアログのListView内の項目をクリックしたときの処理
+    //③選択したファイルの情報を呼び出し元に返すためのしくみの提供
+    private Context mContextParent; // 呼び出し元
+    private OnFileSelectListener mListener;//結果受取先
+    private AlertDialog mDialog;
+    private FileInfoArrayAdapter mFileInfoArrayAdapter;
+
+    //コンストラクタ
+    public FileSelectionDialog(Context context,OnFileSelectListener listener){
+        mContextParent = context;
+        mListener = listener;
     }
 
-    // ダイアログの作成と表示
-    public void show( File fileDirectory )
-    {
-        // タイトル
+    //ダイアログの作成と表示
+    public void show(File fileDirectory){
+        //タイトル
         String strTitle = fileDirectory.getAbsolutePath();
 
-        // リストビュー
-        ListView listview = new ListView( m_contextParent );
-        listview.setScrollingCacheEnabled( false );
-        listview.setOnItemClickListener( this );
-        // ファイルリスト
-        File[]         aFile        = fileDirectory.listFiles();
-        List<FileInfo> listFileInfo = new ArrayList<>();
-        if( null != aFile )
-        {
-            for( File fileTemp : aFile )
-            {
-                listFileInfo.add( new FileInfo( fileTemp.getName(), fileTemp ) );
+        //リストビュー
+        ListView listView = new ListView(mContextParent);
+        listView.setScrollingCacheEnabled(false);
+        listView.setOnItemClickListener(this);
+
+        //ファイルリスト
+        File[] aFile = fileDirectory.listFiles();
+        List<FileInfo>listFileInfo = new ArrayList<>();
+        if(null != aFile){
+            for(File fileTemp:aFile){
+                listFileInfo.add(new FileInfo(fileTemp.getName(),fileTemp));
             }
-            Collections.sort( listFileInfo );
+            Collections.sort(listFileInfo);
         }
-        // 親フォルダに戻るパスの追加
-        if( null != fileDirectory.getParent() )
-        {
-            listFileInfo.add( 0, new FileInfo( "..", new File( fileDirectory.getParent() ) ) );
+        //親フォルダに戻るパスを追加
+        if(null != fileDirectory.getParent()){
+            listFileInfo.add(0,new FileInfo("..",new File(fileDirectory.getParent())));
         }
-        m_fileinfoarrayadapter = new FileInfoArrayAdapter( m_contextParent, listFileInfo );
-        listview.setAdapter( m_fileinfoarrayadapter );
+        mFileInfoArrayAdapter = new FileInfoArrayAdapter(mContextParent,listFileInfo);
+        listView.setAdapter(mFileInfoArrayAdapter);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder( m_contextParent );
-        builder.setTitle( strTitle );
-        builder.setNegativeButton( "Cancel", null );
-        builder.setView( listview );
-        m_dialog = builder.show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContextParent);
+        builder.setTitle(strTitle);
+        builder.setNegativeButton("キャンセル",null);
+        builder.setView(listView);
+        mDialog = builder.show();
     }
 
-    // ListView内の項目をクリックしたときの処理
-    public void onItemClick( AdapterView<?> parent, View view, int position, long id )
-    {
-        if( null != m_dialog )
-        {
-            m_dialog.dismiss();
-            m_dialog = null;
+    //ListView内の項目をクリックしたときの処理
+    public void onItemClick(AdapterView<?>parent,View view,int position,long id){
+        if(null != mDialog){
+            mDialog.dismiss();
+            mDialog = null;
         }
-
-        FileInfo fileinfo = m_fileinfoarrayadapter.getItem( position );
-
-        if( fileinfo.getFile().isDirectory() )
-        {
-            show( fileinfo.getFile() );
-        }
-        else
-        {
-            // ファイルが選ばれた：リスナーのハンドラを呼び出す
-            m_listener.onFileSelect( fileinfo.getFile() );
+        FileInfo fileInfo = mFileInfoArrayAdapter.getItem(position);
+        if(fileInfo.getFile().isDirectory()){
+            show(fileInfo.getFile());
+        }else{
+            mListener.onFileSelect(fileInfo.getFile());
         }
     }
 
-    // 選択したファイルの情報を取り出すためのリスナーインターフェース
-    public interface OnFileSelectListener
-    {
-        // ファイルが選択されたときに呼び出される関数
-        void onFileSelect( File file );
+
+
+    public interface OnFileSelectListener{
+        void onFileSelect(File file);
     }
+
 }
