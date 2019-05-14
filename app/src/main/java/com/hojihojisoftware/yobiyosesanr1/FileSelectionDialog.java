@@ -1,4 +1,6 @@
-//参考URL：https://www.hiramine.com/programming/android/fileselectiondialog.html
+//参考URL(ファイル選択ダイアログ)：https://www.hiramine.com/programming/android/fileselectiondialog.html
+//参照URL(ファイルフィルタ)：http://washieagle.blogspot.com/2009/12/java.html
+//参照URL(ファイルフィルタ)：https://www.sejuku.net/blog/20707
 
 package com.hojihojisoftware.yobiyosesanr1;
 
@@ -15,6 +17,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -158,7 +162,8 @@ public class FileSelectionDialog implements AdapterView.OnItemClickListener {
         listView.setOnItemClickListener(this);
 
         //ファイルリスト
-        File[] aFile = fileDirectory.listFiles();
+        MyFileFilter fileFilter = new MyFileFilter();      //3gpp,aacのみを検索
+        File[] aFile = fileDirectory.listFiles(fileFilter);
         List<FileInfo>listFileInfo = new ArrayList<>();
         if(null != aFile){
             for(File fileTemp:aFile){
@@ -198,6 +203,21 @@ public class FileSelectionDialog implements AdapterView.OnItemClickListener {
 
     public interface OnFileSelectListener{
         void onFileSelect(File file);
+    }
+
+    //ファイルフィルタ
+    public class MyFileFilter implements FilenameFilter{
+        public boolean accept(File dir,String name){
+            int index = name.lastIndexOf(".");
+            String ext = name.substring(index +1).toLowerCase();
+            if(ext.equals("3ggp")==true){
+                return true;
+            }else if(ext.equals("aac")==true){
+                return true;
+            }
+            
+            return false;
+        }
     }
 
 }
