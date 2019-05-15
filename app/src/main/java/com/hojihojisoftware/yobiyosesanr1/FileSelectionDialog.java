@@ -144,6 +144,7 @@ public class FileSelectionDialog implements AdapterView.OnItemClickListener {
     private OnFileSelectListener mListener;//結果受取先
     private AlertDialog mDialog;
     private FileInfoArrayAdapter mFileInfoArrayAdapter;
+    public String mAudioPath;
 
     //コンストラクタ
     public FileSelectionDialog(Context context,OnFileSelectListener listener){
@@ -154,7 +155,8 @@ public class FileSelectionDialog implements AdapterView.OnItemClickListener {
     //ダイアログの作成と表示
     public void show(File fileDirectory){
         //タイトル
-        String strTitle = fileDirectory.getAbsolutePath();
+        String lineSeparator = System.getProperty("line.separator");
+        String strTitle ="ファイル(3gpp,aac,mp3)を開く" + lineSeparator + fileDirectory.getAbsolutePath();
 
         //リストビュー
         ListView listView = new ListView(mContextParent);
@@ -208,14 +210,21 @@ public class FileSelectionDialog implements AdapterView.OnItemClickListener {
     //ファイルフィルタ
     public class MyFileFilter implements FilenameFilter{
         public boolean accept(File dir,String name){
-            int index = name.lastIndexOf(".");
-            String ext = name.substring(index +1).toLowerCase();
-            if(ext.equals("3ggp")==true){
-                return true;
-            }else if(ext.equals("aac")==true){
+            //フォルダの場合は表示する
+            if(!name.contains(".")){
                 return true;
             }
-            
+            //ファイルの場合は拡張子3gpp,aac,mp3
+            int index = name.lastIndexOf(".");
+            String ext = name.substring(index +1).toLowerCase();
+            if(ext.equals("3gp")){
+                return true;
+            }else if(ext.equals("aac")){
+                return true;
+            }else if(ext.equals("mp3")){
+                return true;
+            }
+
             return false;
         }
     }

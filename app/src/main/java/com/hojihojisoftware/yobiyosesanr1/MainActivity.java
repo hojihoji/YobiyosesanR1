@@ -2,6 +2,7 @@ package com.hojihojisoftware.yobiyosesanr1;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Environment;
@@ -13,20 +14,25 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
 
 
 public class MainActivity extends AppCompatActivity implements  FileSelectionDialog.OnFileSelectListener{
 
     final int PERMISSION_REQUEST_CODE = 100;
     ImageButton mPlayImageButton,mStopImageButton,mRepeatImageButton;
+    Button mSelectMusicButton,mIntentRecButton;
     SeekBar mSeekBar;
+    TextView mMusicName;
 
     MediaPlayer mMediaPlayer;
 
     private String mStrInitialDir = Environment.getExternalStorageDirectory().getPath();
+    String mStrMusicName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,16 +71,16 @@ public class MainActivity extends AppCompatActivity implements  FileSelectionDia
             }
         });
 
-        Button selectMusicButton = (Button) findViewById(R.id.btnSelectMusic);
-        selectMusicButton.setOnClickListener(new View.OnClickListener() {
+        mSelectMusicButton = (Button) findViewById(R.id.btnSelectMusic);
+        mSelectMusicButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 selectAudio();
             }
         });
 
-        Button intentRecButton = (Button) findViewById(R.id.btnIntentRec);
-        intentRecButton.setOnClickListener(new View.OnClickListener() {
+        mIntentRecButton = (Button) findViewById(R.id.btnIntentRec);
+        mIntentRecButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 intentRec();
@@ -92,17 +98,57 @@ public class MainActivity extends AppCompatActivity implements  FileSelectionDia
         dig.show(new File(mStrInitialDir));
     }
 
-    private void audioSetup(){
-        Toast.makeText(MainActivity.this,"audioSetup()は未実装です！",Toast.LENGTH_LONG).show();
+    private boolean audioSetup(){
+       boolean fileCheck = false;
+
+       //再生中はmIntentRecButton、mSelectMusicButtonを無効
+        mIntentRecButton.setEnabled(false);
+        mSelectMusicButton.setEnabled(false);
+
+        mMediaPlayer = new MediaPlayer();
+
+        if(mStrMusicName == null){
+            Toast.makeText(MainActivity.this,"音声ファイルを選択してください",Toast.LENGTH_LONG).show();
+        }else{
+            try{
+                mMediaPlayer.setDataSource(mStrMusicName);
+            }catch (IOException ioe){
+                ioe.printStackTrace();
+            }
+        }
+        //音量調整を端末のボタンで行えるようにする
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        try{
+            mMediaPlayer.prepare();
+            fileCheck = true;
+        }catch (IOException ioe){
+            ioe.printStackTrace();
+        }
+        //音楽に合わせ、シークバーの上限値を設定
+        mSeekBar.setMax(mMediaPlayer.getDuration());
+        return fileCheck;
     }
 
 
     public void playAudio(){
-        Toast.makeText(MainActivity.this,"playAudio()は未実装です！",Toast.LENGTH_LONG).show();
+        if(audioSetup()){
+            Toast.makeText(getApplication(),"再生を開始します",Toast.LENGTH_LONG).show();
+        }else{
+            Toast.makeText(getApplication(),"再生できません",Toast.LENGTH_LONG).show();
+        }
     }
 
     public void stopAudio(){
-        Toast.makeText(MainActivity.this,"stopAudio()は未実装です！",Toast.LENGTH_LONG).show();
+        if(mMediaPlayer == null){
+            mMediaPlayer.stop();
+            mMediaPlayer.reset();
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+
+            //mIntentRecButton、mSelectMusicButtonを有効にする
+            mIntentRecButton.setEnabled(true);
+            mSelectMusicButton.setEnabled(true);
+        }
     }
 
     public void repeatAudio(){
@@ -117,6 +163,11 @@ public class MainActivity extends AppCompatActivity implements  FileSelectionDia
     public void onFileSelect(File file){
         Toast.makeText(MainActivity.this,"選択ファイル"+file.getPath(),Toast.LENGTH_LONG).show();
         mStrInitialDir = file.getParent();
+
+        mMusicName = findViewById(R.id.tvMusicName);
+        mStrMusicName = file.getAbsolutePath();
+        mMusicName.setText(mStrMusicName);
+
     }
 
 
