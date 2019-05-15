@@ -64,7 +64,7 @@
             android:text="@string/btn_main_activity_choose_music"/>
 
         <TextView
-            android:id="@+id/hintMusicName"
+            android:id="@+id/tvMusicName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"

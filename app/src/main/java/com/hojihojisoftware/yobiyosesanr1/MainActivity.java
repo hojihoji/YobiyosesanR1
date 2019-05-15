@@ -6,6 +6,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,9 +32,13 @@ public class MainActivity extends AppCompatActivity implements  FileSelectionDia
     TextView mMusicName;
 
     MediaPlayer mMediaPlayer;
+    Runnable mRunnable;
+    Handler mHandler = new Handler();
 
     private String mStrInitialDir = Environment.getExternalStorageDirectory().getPath();
     String mStrMusicName;
+
+    ImageView mYobiyosesan;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,18 +118,19 @@ public class MainActivity extends AppCompatActivity implements  FileSelectionDia
         }else{
             try{
                 mMediaPlayer.setDataSource(mStrMusicName);
+                try{
+                    mMediaPlayer.prepare();
+                    fileCheck = true;
+                }catch (IOException ioe){
+                    ioe.printStackTrace();
+                }
             }catch (IOException ioe){
                 ioe.printStackTrace();
             }
         }
         //音量調整を端末のボタンで行えるようにする
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        try{
-            mMediaPlayer.prepare();
-            fileCheck = true;
-        }catch (IOException ioe){
-            ioe.printStackTrace();
-        }
+
         //音楽に合わせ、シークバーの上限値を設定
         mSeekBar.setMax(mMediaPlayer.getDuration());
         return fileCheck;
@@ -133,18 +140,47 @@ public class MainActivity extends AppCompatActivity implements  FileSelectionDia
     public void playAudio(){
         if(audioSetup()){
             Toast.makeText(getApplication(),"再生を開始します",Toast.LENGTH_LONG).show();
+            //呼び寄せさん画像変更
+            mYobiyosesan = (ImageView)findViewById(R.id.yobiyosesan);
+            mYobiyosesan.setImageResource(R.drawable.yobiyosesan_play);
+            mMediaPlayer.start();
+            changeSeekBar();
+            mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if(fromUser){
+                        mMediaPlayer.seekTo(progress);
+                    }
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+
+                }
+            });
         }else{
-            Toast.makeText(getApplication(),"再生できません",Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplication(),"音声ファイルを選択してください",Toast.LENGTH_LONG).show();
+            //mIntentRecButton、mSelectMusicButtonを有効にする
+            mIntentRecButton.setEnabled(true);
+            mSelectMusicButton.setEnabled(true);
         }
     }
 
     public void stopAudio(){
-        if(mMediaPlayer == null){
+        if(mMediaPlayer != null){
             mMediaPlayer.stop();
             mMediaPlayer.reset();
             mMediaPlayer.release();
             mMediaPlayer = null;
 
+            //呼び寄せさん画像変更
+            mYobiyosesan = (ImageView)findViewById(R.id.yobiyosesan);
+            mYobiyosesan.setImageResource(R.drawable.yobiyosesan_stop);
             //mIntentRecButton、mSelectMusicButtonを有効にする
             mIntentRecButton.setEnabled(true);
             mSelectMusicButton.setEnabled(true);
@@ -168,6 +204,23 @@ public class MainActivity extends AppCompatActivity implements  FileSelectionDia
         mStrMusicName = file.getAbsolutePath();
         mMusicName.setText(mStrMusicName);
 
+    }
+
+
+    //シークバー
+    private void changeSeekBar(){
+        if(mMediaPlayer!=null){
+            mSeekBar.setProgress(mMediaPlayer.getCurrentPosition());
+            if(mMediaPlayer.isPlaying()){
+                mRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        changeSeekBar();
+                    }
+                };
+                mHandler.postDelayed(mRunnable,1000);
+            }
+        }
     }
 
 
